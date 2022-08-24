@@ -3,6 +3,7 @@ package br.com.itau.currencyConverter.application;
 import br.com.itau.currencyConverter.model.entities.CurrencyConverter;
 import br.com.itau.currencyConverter.model.factory.CurrencyConverterFactory;
 
+import java.util.InputMismatchException;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -14,36 +15,49 @@ public class App {
 
         do {
             Double realValue = getRealValue();
-            String optionSelected = getOptionSelected();
-            Optional<CurrencyConverter> currencyConverter = new CurrencyConverterFactory(realValue)
-                    .create(optionSelected);
+
+            Optional<CurrencyConverter> currencyConverter = buildCurrencyConverter(realValue);
 
             while (currencyConverter.isEmpty()) {
                 System.out.println("Opção inválida, escolha novamente !!!");
-                optionSelected = getOptionSelected();
-                currencyConverter = new CurrencyConverterFactory(realValue)
-                        .create(optionSelected);
+                currencyConverter = buildCurrencyConverter(realValue);
             }
 
             showResult(currencyConverter.get());
-            System.out.println("Deseja realizar outra operação? (s/n)");
-            char newOperation = scanner.next().charAt(0);
+            System.out.println("Digite n para sair, para continuar digite outra tecla ");
+            String newOperation = scanner.next();
 
-            if (newOperation == 'n') {
+            if (newOperation.equals("n")) {
                 controller = false;
             }
         } while (controller);
     }
 
     private static Double getRealValue() {
-        System.out.print("Digite o valor em reais (R$): ");
-        return scanner.nextDouble();
+        Double realValue = 0.0;
+        do {
+            try {
+                System.out.print("Digite o valor em reais (R$): ");
+                return scanner.nextDouble();
+            }
+            catch (InputMismatchException e) {
+                System.out.println("Por favor digite um valor numérico e maior que zero");
+            }
+            scanner.nextLine();
+        } while (realValue == 0);
+        return realValue;
     }
 
     private static String getOptionSelected() {
         System.out.println("Digite a moeda de destino: \n 1. Euro \n 2. Dólar \n 3. Peso Argentino \n 4. Peso Chileno");
-        System.out.println("-> ");
+        System.out.print("-> ");
         return scanner.next();
+    }
+
+    private static Optional<CurrencyConverter> buildCurrencyConverter(Double realValue) {
+        String optionSelected = getOptionSelected();
+        return new CurrencyConverterFactory(realValue)
+                .create(optionSelected);
     }
 
     private static void showResult(CurrencyConverter currencyConverter) {
